@@ -193,37 +193,36 @@ if __name__ == '__main__':
     try:
         for episode in range(M):
             random_process.reset()
-            s_1 = env.reset() / env.observation_space.high
+            s_1 = env.reset() / env.observation_space.high  # normalize state to [-1, 1]
             s_t = s_1
             if episode % 200 == 200 - 1:
                 recorder.plot('{}'.format(name))
                 play(env, mu)
             for t in range(T):
-                a_t = mu(Tensor(s_t).to(device)).cpu().detach().cpu().numpy() + np.array(random_process())
+                a_t = mu(Tensor(s_t).to(device)).cpu().detach().numpy() + np.array(random_process())
                 s_t_1, r_t, done, _ = env.step(a_t * 2)
-                s_t_1 /= env.observation_space.high
+                s_t_1 /= env.observation_space.high  # normalize state to [-1, 1]
+
                 replay_buffer.append((s_t, a_t, [r_t], s_t_1))
                 recorder(r_t, a_t[0])
                 s_t = s_t_1
+
                 if done:
                     break
                 if len(replay_buffer) < N:
                     continue
 
-                optim_critic.zero_grad()
-                optim_actor.zero_grad()
                 batch = zip(*sample(replay_buffer, N))
                 s_i, a_i, r_i, s_i_1 = [np.array(i) for i in batch]
-                r_i = (r_i - 6) / 6
+                r_i = (r_i - 6) / 6  # normalize reward to around [-1, 1]
 
+                optim_critic.zero_grad()
                 y_i = Tensor(r_i).to(device) + gamma * Q_(Tensor(s_i_1).to(device), mu_(Tensor(s_i_1).to(device)))
                 loss_critic = F.mse_loss(y_i, Q(Tensor(s_i).to(device), Tensor(a_i).to(device)))
                 loss_critic.backward()
                 optim_critic.step()
 
-                optim_critic.zero_grad()
                 optim_actor.zero_grad()
-
                 loss_actor = -Q(Tensor(s_i).to(device), mu(Tensor(s_i).to(device))).mean()
                 loss_actor.backward()
                 optim_actor.step()
