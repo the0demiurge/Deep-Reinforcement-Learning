@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import json
 import pickle
 import time
@@ -62,7 +63,7 @@ def tao_move_average(source, destination, tao=0.1):
     destination.load_state_dict(d_dict)
 
 
-class Observer(object):
+class Recorder(object):
     def __init__(self, *args):
         self.episode = 0
         self.n = 0
@@ -98,7 +99,7 @@ class Observer(object):
         self._stat = {arg: list() for arg in self.args}
         self.print()
 
-    def plot(self, title=None):
+    def plot(self, title=None, show=False):
         plt.clf()
         if title:
             print(title)
@@ -106,7 +107,8 @@ class Observer(object):
             plt.plot(self.moving_average(self.stats[arg]['mean']), 'x-', label=arg, linewidth=0.5, markersize=1)
         plt.legend()
         plt.title(title)
-        # plt.show()
+        if show:
+            plt.show()
         if title:
             plt.savefig('{}.png'.format(title))
 
@@ -184,23 +186,24 @@ if __name__ == '__main__':
     Q = Critic(state_size, act_size).to(device)
     Q_ = Critic(state_size, act_size).to(device)
     copy(Q, Q_)
-    oup = OrnsteinUhlenbeckProcess(dt=1, theta=.15, sigma=0.2)
-    observer = Observer('r', 'a')
+    random_process = OrnsteinUhlenbeckProcess(dt=1, theta=.15, sigma=0.2)
+    recorder = Recorder('r', 'a')
     optim_critic = optim.Adam(Q.parameters(), lr=lr_critic)
     optim_actor = optim.Adam(mu.parameters(), lr=lr_actor)
     try:
         for episode in range(M):
-            oup.reset()
+            random_process.reset()
             s_1 = env.reset() / env.observation_space.high
             s_t = s_1
             if episode % 200 == 200 - 1:
-                observer.plot('{}'.format(name))
+                recorder.plot('{}'.format(name))
+                play(env, mu)
             for t in range(T):
-                a_t = mu(Tensor(s_t).to(device)).cpu().detach().cpu().numpy() + np.array(oup())
+                a_t = mu(Tensor(s_t).to(device)).cpu().detach().cpu().numpy() + np.array(random_process())
                 s_t_1, r_t, done, _ = env.step(a_t * 2)
                 s_t_1 /= env.observation_space.high
                 replay_buffer.append((s_t, a_t, [r_t], s_t_1))
-                observer(r_t, a_t[0])
+                recorder(r_t, a_t[0])
                 s_t = s_t_1
                 if done:
                     break
@@ -228,11 +231,11 @@ if __name__ == '__main__':
                 tao_move_average(Q, Q_, tao)
                 tao_move_average(mu, mu_, tao)
 
-            observer.reset()
+            recorder.reset()
     except KeyboardInterrupt:
         pass
 
-    observer.reset()
+    recorder.reset()
     pickle.dump(mu.to('cpu').state_dict(), open('{}.pkl'.format(name), 'wb'))
-    observer.plot('{}'.format(name))
-    observer.save('{}.json'.format(name))
+    recorder.plot('{}'.format(name))
+    recorder.save('{}.json'.format(name))
