@@ -5,7 +5,7 @@ This project is aiming at recurring Deep Reinforcement Learning papers with the 
 # Features
 
 - Full deep reinforcement learning structure in a single file
-- One-to-one correspondence structure and naming with pseudo-code in papers
+- One-to-one correspondence with the structure and naming in the paper
 - Most simplified coding
 
 # Run
