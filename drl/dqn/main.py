@@ -15,7 +15,7 @@ from matplotlib import pyplot as plt
 from torch import Tensor
 
 name = 'baseline'
-device = 'cuda:0'  # torch.device("cuda:{}".format(randint(0, torch.cuda.device_count() - 1)) if torch.cuda.is_available() else "cpu")
+device = torch.device("cuda:{}".format(randint(0, torch.cuda.device_count() - 1)) if torch.cuda.is_available() else "cpu")
 
 M = 2000  # Episodes
 T = 200  # Trajectory lenth
