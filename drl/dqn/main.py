@@ -78,7 +78,8 @@ class Recorder(object):
         if title:
             print(title)
         for arg in self.args:
-            plt.plot(self.moving_average(self.stats[arg]['max']), 'x-', label=arg, linewidth=0.5, markersize=1)
+            if arg == 't':
+                plt.plot(self.moving_average(self.stats[arg]['max']), 'x-', label=arg, linewidth=0.5, markersize=1)
         plt.legend()
         plt.title(title)
         if show:
