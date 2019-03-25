@@ -22,12 +22,10 @@ T = 200  # Trajectory lenth
 N = 64  # Batch size
 R = 1e+6  # Replay size
 epsilon = 0.1  # Exploration constant
-lr_critic = 1e-3  # Initial_learning rates
-lr_actor = 1e-4
+lr = 1e-3  # Initial_learning rate
 gamma = 0.99
 tao = 0.001
-activ1 = nn.RReLU
-activ2 = F.rrelu
+activation = nn.RReLU
 
 env = gym.make('CartPole-v0')
 replay_buffer = deque(maxlen=int(R))
@@ -113,11 +111,11 @@ class Recorder(object):
 def Q_Network(state_size, act_size):
     return nn.Sequential(
         nn.Linear(state_size, 400),
-        activ1(),
+        activation(),
         nn.Linear(400, 300),
-        activ1(),
+        activation(),
         nn.Linear(300, act_size),
-        activ1()
+        activation()
     )
 
 
@@ -142,7 +140,7 @@ if __name__ == '__main__':
     Q = Q_Network(state_size, act_size).to(device)
 
     recorder = Recorder('t', 'a')
-    optim = optim.Adam(Q.parameters(), lr=lr_critic)
+    optimizor = optim.Adam(Q.parameters(), lr=lr)
 
     try:
         for episode in range(M):
@@ -171,11 +169,11 @@ if __name__ == '__main__':
                 batch = zip(*sample(replay_buffer, N))
                 s_i, a_i, r_i, s_i_1 = [np.array(i) for i in batch]
 
-                optim.zero_grad()
+                optimizor.zero_grad()
                 y_i = Tensor(r_i).to(device) + Tensor(r_i).to(device) * (gamma * torch.max(Q(Tensor(s_i_1).to(device)), dim=1)[0].view(-1, 1))
                 loss = F.mse_loss(y_i, Q(Tensor(s_i).to(device))[list(range(N)), a_i.squeeze()].view(-1, 1))
                 loss.backward()
-                optim.step()
+                optimizor.step()
 
             recorder.reset()
     except KeyboardInterrupt:
