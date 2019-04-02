@@ -45,8 +45,8 @@ class DDPG(object):
         self.optim_actor = optim.Adam(self.mu.parameters(), lr=lr_actor)
 
     def observe(self, state, action, reward):
-        self.replay_buffer.append((self.state0, action, [reward], state))
-        self.state0 = state
+        self.replay_buffer.append((self.prev_state, action, [reward], state))
+        self.prev_state = state
 
     def plan(self, state, disturb=False):
         predict = self.mu(Tensor(state).to(self.device)).cpu().detach().numpy()
@@ -73,9 +73,9 @@ class DDPG(object):
         tao_move_average(self.mu, self.mu_, self.tao)
         return loss_actor, loss_critic
 
-    def reset(self, state0):
+    def reset(self, prev_state):
         self.random_process.reset()
-        self.state0 = state0
+        self.prev_state = prev_state
         # reset rnn hidden unit
         for network in [self.mu, self.mu_, self.Q, self.Q_]:
             reset_function = getattr(network, self.rnn_reset_function_name, None)

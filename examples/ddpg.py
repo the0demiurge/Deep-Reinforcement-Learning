@@ -10,8 +10,13 @@ name = 'ddpg_pendulum'
 state_size = 3
 act_size = 1
 
+M = 2000  # Episodes
+T = 200  # Trajectory lenth
+N = 64  # Batch size
+
 random_process = OrnsteinUhlenbeckProcess(dt=1, theta=.15, sigma=0.2)
 writer = SummaryWriter(comment='_' + name)
+env = gym.make('Pendulum-v0')
 
 
 def Actor(state_size):
@@ -42,30 +47,29 @@ class Critic(nn.Module):
         return x
 
 
-env = gym.make('Pendulum-v0')
-
 agent = DDPG(lambda: Actor(state_size), lambda: Critic(state_size, act_size), random_process)
+
+
 try:
-    for episode in range(2000):
-        random_process.reset()
-        s_1 = env.reset() / env.observation_space.high  # normalize state to [-1, 1]
-        agent.reset(s_1)
-        s_t = s_1
-        rr = 0
-        for t in range(200):
-            a_t = agent.plan(s_t, True)
-            s_t_1, r_t, done, _ = env.step(a_t * 2)
-            s_t_1 /= env.observation_space.high  # normalize state to [-1, 1]
-            rr += r_t
-            agent.observe(s_t_1, a_t, r_t / 6)
-            s_t = s_t_1
+    for episode in range(M):
+        state = env.reset() / env.observation_space.high  # normalize state to [-1, 1]
+        agent.reset(state)
+        accumulate_reward = 0
+        for t in range(T):
+            action = agent.plan(state, True)
+            state, reward, done, _ = env.step(action * 2)
+            state /= env.observation_space.high  # normalize state to [-1, 1]
+
+            accumulate_reward += reward
+
+            agent.observe(state, action, reward / 6)
 
             if done:
                 break
-            if len(agent.replay_buffer) < 64:
+            if len(agent.replay_buffer) < N:
                 continue
-            agent.train()
-        writer.add_scalar('average_reward', rr / t)
+            agent.train(N)
+        writer.add_scalar('average_reward', accumulate_reward / t, global_step=episode)
 
 except KeyboardInterrupt:
     pass
