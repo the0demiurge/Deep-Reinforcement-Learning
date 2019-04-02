@@ -1,17 +1,14 @@
-# Introduction
+# Deep Reinforcement Learning Project by Charles Xu
 
-This project is aiming at recurring Deep Reinforcement Learning papers with the most concise python code. 
+## Introduction
 
-# Features
+This project is aiming at:
+
+- Recurring Deep Reinforcement Learning algorithms with the most concise python code.
+- Implement a most simple DRL lib for commonly usage.
+
+## Features
 
 - Full deep reinforcement learning structure in a single file
 - One-to-one correspondence with the structure and naming in the paper
 - Most simplified coding
-
-# Run
-
-```bash
-cd drl/<drl algorithm>
-python3 main.py
-```
-
