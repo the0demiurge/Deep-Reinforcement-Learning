@@ -12,9 +12,6 @@ M = 2000  # Episodes
 T = 200  # Trajectory lenth
 N = 64  # Batch size
 
-writer = SummaryWriter(comment='_' + name)
-env = gym.make('CartPole-v0')
-
 
 def Q_Network(state_size, act_size):
     return nn.Sequential(
@@ -28,6 +25,8 @@ def Q_Network(state_size, act_size):
 
 
 agent = DQN(lambda: Q_Network(state_size, act_size))
+env = gym.make('CartPole-v0')
+writer = SummaryWriter(comment='_' + name)
 
 
 try:
@@ -36,7 +35,7 @@ try:
         agent.reset(state)
         length = 0
         for t in range(T):
-            action = agent.plan(state, 2, epsilon)
+            action = agent.plan(state, act_size, epsilon)
             state, reward, done, _ = env.step(action)
 
             if done:
@@ -53,7 +52,8 @@ try:
 
             agent.train(N)
         writer.add_scalar('live_length', length, global_step=episode)
+        print(episode, length, sep='\t')
 
 except KeyboardInterrupt:
     pass
-agent.save(name + '.pkl')
+agent.save(writer=writer)

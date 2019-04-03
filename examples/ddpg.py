@@ -14,10 +14,6 @@ M = 2000  # Episodes
 T = 200  # Trajectory lenth
 N = 64  # Batch size
 
-random_process = OrnsteinUhlenbeckProcess(dt=1, theta=.15, sigma=0.2)
-writer = SummaryWriter(comment='_' + name)
-env = gym.make('Pendulum-v0')
-
 
 def Actor(state_size):
     return nn.Sequential(
@@ -47,7 +43,10 @@ class Critic(nn.Module):
         return x
 
 
+random_process = OrnsteinUhlenbeckProcess(dt=1, theta=.15, sigma=0.2)
 agent = DDPG(lambda: Actor(state_size), lambda: Critic(state_size, act_size), random_process)
+env = gym.make('Pendulum-v0')
+writer = SummaryWriter(comment='_' + name)
 
 
 try:
@@ -70,7 +69,8 @@ try:
                 continue
             agent.train(N)
         writer.add_scalar('average_reward', accumulate_reward / t, global_step=episode)
+        print(episode, accumulate_reward / t, sep='\t')
 
 except KeyboardInterrupt:
     pass
-agent.save(name + '.pkl')
+agent.save(writer=writer)

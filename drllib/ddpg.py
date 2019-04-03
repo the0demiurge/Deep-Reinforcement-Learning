@@ -82,8 +82,11 @@ class DDPG(object):
             if reset_function is not None:
                 reset_function()
 
-    def dump(self, path):
-        torch.save((self.Q, self.Q_, self.mu, self.mu_), path)
+    def save(self, path=None, writer=None):
+        if writer is not None:
+            path = writer.file_writer.get_logdir() + '/model.pkl'
+        assert path is not None, 'save path cannot be None'
+        torch.save((self.Q), path)
 
     def load(self, path):
         (self.Q, self.Q_, self.mu, self.mu_) = torch.load(path)
