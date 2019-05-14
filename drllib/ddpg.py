@@ -86,7 +86,7 @@ class DDPG(object):
         if writer is not None:
             path = writer.file_writer.get_logdir() + '/model.pkl'
         assert path is not None, 'save path cannot be None'
-        torch.save((self.Q), path)
+        torch.save((self.Q, self.Q_, self.mu, self.mu_), path)
 
     def load(self, path):
         (self.Q, self.Q_, self.mu, self.mu_) = torch.load(path)
