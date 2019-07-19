@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import os
 from collections import deque
 from random import sample
 
@@ -6,8 +7,9 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 import torch.optim as optim
-from drllib.lib import copy, get_device, tao_move_average
 from torch import Tensor
+
+from drlff.drllib.lib import copy, get_device, tao_move_average
 
 
 class DDPG(object):
@@ -86,7 +88,11 @@ class DDPG(object):
         if writer is not None:
             path = writer.file_writer.get_logdir() + '/model.pkl'
         assert path is not None, 'save path cannot be None'
+        if os.path.isdir(path):
+            path = os.path.join(path, 'model.pkl')
         torch.save((self.Q, self.Q_, self.mu, self.mu_), path)
 
     def load(self, path):
+        if os.path.isdir(path):
+            path = os.path.join(path, 'model.pkl')
         (self.Q, self.Q_, self.mu, self.mu_) = torch.load(path)
