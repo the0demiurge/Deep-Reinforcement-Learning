@@ -24,7 +24,7 @@ R = 1e+6  # Replay size
 epsilon = 0.1  # Exploration constant
 lr = 1e-3  # Initial_learning rate
 gamma = 0.99
-tao = 0.001
+tau = 0.001
 activation = nn.RReLU
 
 env = gym.make('CartPole-v0')

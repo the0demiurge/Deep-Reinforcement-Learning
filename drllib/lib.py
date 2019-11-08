@@ -29,9 +29,9 @@ def copy(source, destination):
     destination.load_state_dict(source.state_dict())
 
 
-def tao_move_average(source, destination, tao=0.1):
+def tau_move_average(source, destination, tau=0.1):
     d_dict = destination.state_dict()
     s_dict = source.state_dict()
     for key in d_dict:
-        d_dict[key] = s_dict[key] * tao + d_dict[key] * (1 - tao)
+        d_dict[key] = s_dict[key] * tau + d_dict[key] * (1 - tau)
     destination.load_state_dict(d_dict)

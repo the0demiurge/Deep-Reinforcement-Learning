@@ -9,7 +9,7 @@ import torch.nn.functional as F
 import torch.optim as optim
 from torch import Tensor
 
-from drlff.drllib.lib import copy, get_device, tao_move_average
+from drlff.drllib.lib import copy, get_device, tau_move_average
 
 
 class DDPG(object):
@@ -20,7 +20,7 @@ class DDPG(object):
         lr_critic=1e-3,
         lr_actor=1e-4,
         gamma=0.99,
-        tao=0.001,
+        tau=0.001,
         rnn_reset_function_name='reset',
         device=None,
     ):
@@ -32,7 +32,7 @@ class DDPG(object):
         self.lr_critic = lr_critic
         self.lr_actor = lr_actor
         self.gamma = gamma
-        self.tao = tao
+        self.tau = tau
         self.replay_buffer = deque(maxlen=int(replay_buffer_size))
         self.random_process = random_process
         self.rnn_reset_function_name = rnn_reset_function_name
@@ -71,8 +71,8 @@ class DDPG(object):
         loss_actor.backward()
         self.optim_actor.step()
 
-        tao_move_average(self.Q, self.Q_, self.tao)
-        tao_move_average(self.mu, self.mu_, self.tao)
+        tau_move_average(self.Q, self.Q_, self.tau)
+        tau_move_average(self.mu, self.mu_, self.tau)
         return loss_actor, loss_critic
 
     def reset(self, prev_state):

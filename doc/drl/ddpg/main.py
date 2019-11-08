@@ -25,7 +25,7 @@ epsilon = 0.1  # Exploration constant
 lr_critic = 1e-3  # Initial_learning rates
 lr_actor = 1e-4
 gamma = 0.99
-tao = 0.001
+tau = 0.001
 activ1 = nn.RReLU
 activ2 = F.rrelu
 
@@ -55,11 +55,11 @@ def copy(source, destination):
     destination.load_state_dict(source.state_dict())
 
 
-def tao_move_average(source, destination, tao=0.1):
+def tau_move_average(source, destination, tau=0.1):
     d_dict = destination.state_dict()
     s_dict = source.state_dict()
     for key in d_dict:
-        d_dict[key] = s_dict[key] * tao + d_dict[key] * (1 - tao)
+        d_dict[key] = s_dict[key] * tau + d_dict[key] * (1 - tau)
     destination.load_state_dict(d_dict)
 
 
@@ -227,8 +227,8 @@ if __name__ == '__main__':
                 loss_actor.backward()
                 optim_actor.step()
 
-                tao_move_average(Q, Q_, tao)
-                tao_move_average(mu, mu_, tao)
+                tau_move_average(Q, Q_, tau)
+                tau_move_average(mu, mu_, tau)
 
             recorder.reset()
     except KeyboardInterrupt:
